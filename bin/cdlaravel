@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# Print the nearest Laravel project root. Use with: cd "$(cdlaravel)"
+set -euo pipefail
+
+find_laravel_root() {
+  local dir="${1:-$PWD}"
+  while [ "$dir" != "/" ]; do
+    if [ -f "$dir/artisan" ]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+if ! find_laravel_root; then
+  echo "No Laravel project found above: $PWD" >&2
+  exit 1
+fi

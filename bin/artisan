@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Run the nearest Laravel "php artisan" or "sail artisan" from anywhere in a project tree.
+set -euo pipefail
+
+find_laravel_root() {
+  local dir="${1:-$PWD}"
+  while [ "$dir" != "/" ]; do
+    if [ -f "$dir/artisan" ]; then
+      printf '%s\n' "$dir"
+      return 0
+    fi
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+main() {
+  if ! root="$(find_laravel_root)"; then
+    echo "No Laravel project found above: $PWD" >&2
+    exit 1
+  fi
+
+  (
+    cd "$root" || exit 1
+
+    # Env override to force php or sail if you want
+    # LARAVEL_SHORTCUTS_FORCE=php|sail
+    case "${LARAVEL_SHORTCUTS_FORCE:-auto}" in
+      php)
+        exec php artisan "$@"
+        ;;
+      sail)
+        if [ -x "vendor/bin/sail" ]; then
+          exec vendor/bin/sail artisan "$@"
+        else
+          echo "Sail not found. Falling back to php." >&2
+          exec php artisan "$@"
+        fi
+        ;;
+      auto|*)
+        if [ -x "vendor/bin/sail" ]; then
+          exec vendor/bin/sail artisan "$@"
+        else
+          exec php artisan "$@"
+        fi
+        ;;
+    esac
+  )
+}
+
+main "$@"

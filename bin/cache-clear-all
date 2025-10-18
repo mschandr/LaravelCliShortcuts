@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Clear caches for all Laravel projects under a directory (default: current).
+# Planned: find all dirs containing an artisan file and run: artisan optimize:clear
+set -euo pipefail
+echo "TODO: implement cache clearing across multiple projects."
